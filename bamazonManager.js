@@ -14,27 +14,26 @@ var connection = mysql.createConnection({
 });
 
 run();
-
 // Function created to start the app
 function run() {
-	inquirer.prompt(
-	{
-		type:'list',
-		name:'managerOptions',
-		message:'What would you like to do?',
-		choices: ['View Products for Sale','View Low Inventory','Add to Inventory','Add New Product']
-	}).then(function(answer) {
-		var choice = answer.managerOptions;
-		if (choice==='View Products for Sale') {
-			displayItems();
-		} else if (choice==='View Low Inventory') {
-			lowInventory();
-		} else if (choice==='Add to Inventory') {
-			addInventory();
-		} else if (choice==='Add New Product') {
+		inquirer.prompt(
+		{
+			type:'list',
+			name:'managerOptions',
+			message:'What would you like to do?',
+			choices: ['View Products for Sale','View Low Inventory','Add to Inventory','Add New Product\n']
+		}).then(function(answer) {
+			var choice = answer.managerOptions;
+			if (choice==='View Products for Sale') {
+				displayItems();
+			} else if (choice==='View Low Inventory') {
+				lowInventory();
+			} else if (choice==='Add to Inventory') {
+				addInventory();
+			} else if (choice==='Add New Product') {
 
-		}
-	});
+			}
+		});
 }
 
 // Function created to list each one of the store items
@@ -43,35 +42,76 @@ function displayItems() {
 
 	// create a query and call back to get the information from the table products inside the database bamazon
 	connection.query(query, function(err, res) {
+		console.log('-'.repeat(24));
 
-	console.log('\nID  |  PRODUCT  |  DEPARTMENT  |  PRICE  |  IN STOCK');
+		console.log('ID  |  PRODUCT  |  DEPARTMENT  |  PRICE  |  IN STOCK');
 		for (var i=0; i<res.length; i++) {
 			console.log(res[i].id+ ' | '+res[i].product_name+' | '+res[i].department_name+' | '+res[i].price+' | '+res[i].stock_quantity+' | ');
 		}
-		console.log("-".repeat(24));
+		console.log('-'.repeat(24));
 		run();
 	});
-
 }
 
 // Function created to list each one of the store items
 function lowInventory() {
+	var  itemsLowInventory = [];
 	connection.query('SELECT * FROM products', function(err, res) {
-
+		console.log('-'.repeat(24));
 		for (var i=0; i<res.length; i++) {
 			if (res[i].stock_quantity<5) {
 
-				console.log(res[i].id+ ' | '+res[i].product_name+' | '+res[i].department_name+' | '+res[i].price+' | '+res[i].stock_quantity+' | ');
+				console.log('ITEM: '+res[i].product_name+' | IN STOCK: '+res[i].stock_quantity+' | ');
+				itemsLowInventory.push(res[i].product_name);
 			}
 		}
-		console.log("-".repeat(24));
+		console.log('-'.repeat(24));
 		run();
 	});
 }
 
 function addInventory() {
-	inquirer.prompt();
+	connection.query('SELECT * FROM products', function(err,res) {
+		inquirer.prompt(
+		{
+			type:'list',
+			name:'addInventory',
+			message:'What item would you like to add to?',
+			choices: function(value) {
+				var itemsArray = [];
+				for (var i=0; i<res.length; i++) {
+					itemsArray.push(res[i].product_name);
+				}
+				return itemsArray;
+			}
+		}).then(function(answer) {
+			var item = answer.addInventory;
+
+				connection.query('SELECT stock_quantity FROM products WHERE ?',{product_name:item}, function(err, res) {
+					var inStock = parseInt(res[0].stock_quantity);
+					console.log('ITEM: '+item);
+					console.log('IN STOCK: '+inStock);
+				inquirer.prompt (
+				{
+					type:'input',
+					name:'amountToAdd',
+					message:'How many items would you like to add?'
+				}).then(function(answer){
+					var amountToAdd = parseInt(answer.amountToAdd);
+					var newStock = inStock+amountToAdd;
+					connection.query('UPDATE products SET ? WHERE ?',[{stock_quantity:newStock},{product_name:item}],function(err,res){
+							console.log('ITEM: '+item);
+							console.log('OLD STOCK: '+inStock );
+							console.log('IN STOCK: '+newStock);
+							run();
+						});
+				});
+			});
+		});
+	});
 }
+
+
 
 
 
