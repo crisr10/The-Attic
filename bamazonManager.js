@@ -21,7 +21,7 @@ function run() {
 			type:'list',
 			name:'managerOptions',
 			message:'What would you like to do?',
-			choices: ['View Products for Sale','View Low Inventory','Add to Inventory','Add New Product\n']
+			choices: ['View Products for Sale','View Low Inventory','Add to Inventory','Add New Product']
 		}).then(function(answer) {
 			var choice = answer.managerOptions;
 			if (choice==='View Products for Sale') {
@@ -31,7 +31,7 @@ function run() {
 			} else if (choice==='Add to Inventory') {
 				addInventory();
 			} else if (choice==='Add New Product') {
-
+				addNewItem();
 			}
 		});
 }
@@ -111,7 +111,48 @@ function addInventory() {
 	});
 }
 
+function addNewItem() {
+	console.log('add new product');
+	inquirer.prompt([
+	{
+		type:'input',
+		name:'product_name',
+		message:'Input product name'
+	},
+	{
+		type:'input',
+		name:'department_name',
+		message:'Input department name'
+	},
+	{
+		type:'input',
+		name:'price',
+		message:'Input price'
+	},
+	{
+		type:'input',
+		name:'stock_quantity',
+		message:'Input stock quantity'
+	}]).then(function(answer) {
+		var newItemName = answer.product_name;
+		var department = answer.department_name;
+		var price = answer.price;
+		var stockQuantity =answer.stock_quantity ;
 
+		connection.query('INSERT INTO products SET ?', {
+			product_name:newItemName,
+			department_name:department,
+			price:price,
+			stock_quantity:stockQuantity
+		}, function(err,res) {
+			console.log('-'.repeat(24));
+			console.log('YOUR PRODUCT WAS CREATED SUCCESFULLY!');
+			console.log('-'.repeat(24));
+
+			run();
+		});
+	});
+}
 
 
 
