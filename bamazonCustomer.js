@@ -1,5 +1,7 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
+var Table = require('cli-table');
+
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -26,11 +28,12 @@ function displayItems() {
 	// create a query and call back to get the information from the table products inside the database bamazon
 	connection.query(query, function(err, res) {
 
-	console.log('\n ID | PRODUCT | DEPARTMENT | PRICE | IN STOCK');
+	var table = new Table({head:['ID','PRODUCT','DEPARTMENT','PRICE','IN STOCK']});
+
 		for (var i=0; i<res.length; i++) {
-			console.log(res[i].id+ ' | '+res[i].product_name+' | '+res[i].department_name+' | '+res[i].price+' | '+res[i].stock_quantity+' | ');
+			table.push([res[i].id, res[i].product_name, res[i].department_name, res[i].price,res[i].stock_quantity]);
 		}
-		console.log("-".repeat(24));
+		console.log(table.toString());
 		buy();
 	});
 }
