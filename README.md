@@ -8,7 +8,7 @@ Clone the repo on your local machine
 
 ### Installing
 
-Then install all the dependencies
+Install all the dependencies
 
 <pre>npm install</pre>
 
